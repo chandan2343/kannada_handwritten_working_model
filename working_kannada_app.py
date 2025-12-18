@@ -48,45 +48,6 @@ class_names = None
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 uploaded_files = {}  # Store uploaded files in memory
 
-TRAIN_CLASSES = [
-  "ಅ","ಅಂ","ಅಃ","ಆ","ಇ","ಈ","ಉ","ಊ","ಋ","ಎ","ಏ","ಐ","ಒ","ಓ","ಔ",
-  "ಕ","ಕಂ","ಕಃ","ಕಾ","ಕಿ","ಕೀ","ಕು","ಕೂ","ಕೃ","ಕೆ","ಕೊ","ಕೋ","ಕೇ","ಕೈ","ಕೌ","ಕ್","ಕ್ಕ",
-  "ಖ","ಖಂ","ಖಃ","ಖಾ","ಖಿ","ಖೀ","ಖು","ಖೂ","ಖೃ","ಖೆ","ಖೊ","ಖೋ","ಖೇ","ಖೈ","ಖೌ","ಖ್","ಖ್ಖ",
-  "ಗ","ಗಂ","ಗಃ","ಗಾ","ಗಿ","ಗೀ","ಗು","ಗೂ","ಗೃ","ಗೆ","ಗೊ","ಗೋ","ಗೇ","ಗೈ","ಗೌ","ಗ್","ಗ್ಗ",
-  "ಘ","ಘಂ","ಘಃ","ಘಾ","ಘಿ","ಘೀ","ಘು","ಘೂ","ಘೃ","ಘೆ","ಘೊ","ಘೋ","ಘೇ","ಘೈ","ಘೌ","ಘ್ಘ",
-  "ಙ","ಙಂ","ಙಃ","ಙಾ","ಙಿ","ಙೀ","ಙು","ಙೂ","ಙೃ","ಙೆ","ಙೊ","ಙೋ","ಙೇ","ಙೈ","ಙೌ","ಙ್ಙ",
-  "ಚ","ಚಂ","ಚಃ","ಚಾ","ಚಿ","ಚೀ","ಚು","ಚೂ","ಚೃ","ಚೆ","ಚೊ","ಚೋ","ಚೇ","ಚೈ","ಚೌ","ಚ್","ಚ್ಚ",
-  "ಛ","ಛಂ","ಛಃ","ಛಾ","ಛಿ","ಛೀ","ಛು","ಛೂ","ಛೃ","ಛೆ","ಛೊ","ಛೋ","ಛೇ","ಛೈ","ಛೌ","ಛ್ಛ",
-  "ಜ","ಜಂ","ಜಃ","ಜಾ","ಜಿ","ಜೀ","ಜು","ಜೂ","ಜೃ","ಜೆ","ಜೊ","ಜೋ","ಜೇ","ಜೈ","ಜೌ","ಜ್ಜ","ಜ್",
-  "ಝ","ಝಂ","ಝಃ","ಝಾ","ಝಿ","ಝೀ","ಝು","ಝೂ","ಝೃ","ಝೆ","ಝೊ","ಝೋ","ಝೇ","ಝೈ","ಝೌ","ಝ್ಝ",
-  "ಞ","ಞಂ","ಞಃ","ಞಾ","ಞಿ","ಞೀ","ಞು","ಞೂ","ಞೃ","ಞೆ","ಞೊ","ಞೋ","ಞೇ","ಞೈ","ಞೌ","ಞ್ಞ",
-  "ಟ","ಟಂ","ಟಃ","ಟಾ","ಟಿ","ಟೀ","ಟು","ಟೂ","ಟೃ","ಟೆ","ಟೊ","ಟೋ","ಟೇ","ಟೈ","ಟೌ","ಟ್","ಟ್ಟ",
-  "ಠ","ಠಂ","ಠಃ","ಠಾ","ಠಿ","ಠೀ","ಠು","ಠೂ","ಠೃ","ಠೆ","ಠೊ","ಠೋ","ಠೇ","ಠೈ","ಠೌ","ಠ್ಠ",
-  "ಡ","ಡಂ","ಡಃ","ಡಾ","ಡಿ","ಡೀ","ಡು","ಡೃ","ಡೆ","ಡೊ","ಡೋ","ಡೇ","ಡೈ","ಡೌ","ಡ್ಡ","ಡ್",
-  "ಢ","ಢಂ","ಢಃ","ಢಾ","ಢಿ","ಢೀ","ಢು","ಢೂ","ಢೃ","ಢೆ","ಢೊ","ಢೋ","ಢೇ","ಢೈ","ಢೌ","ಢ್ಢ",
-  "ಣ","ಣಂ","ಣಃ","ಣಾ","ಣಿ","ಣೀ","ಣು","ಣೂ","ಣೃ","ಣೆ","ಣೊ","ಣೋ","ಣೇ","ಣೈ","ಣೌ","ಣ್","ಣ್ಣ",
-  "ತ","ತಂ","ತಃ","ತಾ","ತಿ","ತೀ","ತು","ತೂ","ತೃ","ತೆ","ತೊ","ತೋ","ತೇ","ತೈ","ತೌ","ತ್","ತ್ತ",
-  "ಥ","ಥಂ","ಥಃ","ಥಾ","ಥಿ","ಥೀ","ಥು","ಥೂ","ಥೃ","ಥೆ","ಥೊ","ಥೋ","ಥೇ","ಥೈ","ಥೌ","ಥ್ಥ",
-  "ದ","ದಂ","ದಃ","ದಾ","ದಿ","ದೀ","ದು","ದೂ","ದೃ","ದೆ","ದೊ","ದೋ","ದೇ","ದೈ","ದೌ","ದ್","ದ್ದ",
-  "ಧ","ಧಂ","ಧಃ","ಧಾ","ಧಿ","ಧೀ","ಧು","ಧೂ","ಧೃ","ಧೆ","ಧೊ","ಧೋ","ಧೇ","ಧೈ","ಧೌ","ಧ್ಧ",
-  "ನ","ನಂ","ನಃ","ನಾ","ನಿ","ನೀ","ನು","ನೂ","ನೃ","ನೆ","ನೊ","ನೋ","ನೇ","ನೈ","ನೌ","ನ್","ನ್ನ",
-  "ಪ","ಪಂ","ಪಃ","ಪಾ","ಪಿ","ಪೀ","ಪು","ಪೂ","ಪೃ","ಪೆ","ಪೊ","ಪೋ","ಪೇ","ಪೈ","ಪೌ","ಪ್","ಪ್ಪ",
-  "ಫ","ಫಂ","ಫಃ","ಫಾ","ಫಿ","ಫೀ","ಫು","ಫೂ","ಫೃ","ಫೆ","ಫೊ","ಫೋ","ಫೇ","ಫೈ","ಫೌ","ಫ್ಫ",
-  "ಬ","ಬಂ","ಬಃ","ಬಾ","ಬಿ","ಬೀ","ಬು","ಬೂ","ಬೃ","ಬೆ","ಬೊ","ಬೋ","ಬೇ","ಬೈ","ಬೌ","ಬ್","ಬ್ಬ",
-  "ಭ","ಭಂ","ಭಃ","ಭಾ","ಭಿ","ಭೀ","ಭು","ಭೂ","ಭೃ","ಭೆ","ಭೊ","ಭೋ","ಭೇ","ಭೈ","ಭೌ","ಭ್","ಭ್ಭ",
-  "ಮ","ಮಂ","ಮಃ","ಮಾ","ಮಿ","ಮೀ","ಮು","ಮೂ","ಮೃ","ಮೆ","ಮೊ","ಮೋ","ಮೇ","ಮೈ","ಮೌ","ಮ್","ಮ್ಮ",
-  "ಯ","ಯಂ","ಯಃ","ಯಾ","ಯಿ","ಯೀ","ಯು","ಯೂ","ಯೃ","ಯೆ","ಯೊ","ಯೋ","ಯೇ","ಯೈ","ಯೌ","ಯ್","ಯ್ಯ",
-  "ರ","ರಂ","ರಃ","ರಾ","ರಿ","ರೀ","ರು","ರೂ","ರೃ","ರೆ","ರೊ","ರೋ","ರೇ","ರೈ","ರೌ","ರ್","ರ್ರ",
-  "ಲ","ಲಂ","ಲಃ","ಲಾ","ಲಿ","ಲೀ","ಲು","ಲೂ","ಲೃ","ಲೆ","ಲೊ","ಲೋ","ಲೇ","ಲೈ","ಲೌ","ಲ್","ಲ್ಲ",
-  "ಳ","ಳಂ","ಳಃ","ಳಾ","ಳಿ","ಳೀ","ಳು","ಳೂ","ಳೃ","ಳೆ","ಳೊ","ಳೋ","ಳೇ","ಳೈ","ಳೌ","ಳ್ಳ",
-  "ವ","ವಂ","ವಃ","ವಾ","ವಿ","ವೀ","ವು","ವೂ","ವೃ","ವೆ","ವೊ","ವೋ","ವೇ","ವೈ","ವೌ","ವ್","ವ್ವ",
-  "ಶ","ಶಂ","ಶಃ","ಶಾ","ಶಿ","ಶೀ","ಶು","ಶೂ","ಶೃ","ಶೆ","ಶೊ","ಶೋ","ಶೇ","ಶೈ","ಶೌ","ಶ್","ಶ್ಶ",
-  "ಷ","ಷಂ","ಷಃ","ಷಾ","ಷಿ","ಷೀ","ಷು","ಷೂ","ಷೃ","ಷೆ","ಷೊ","ಷೋ","ಷೇ","ಷೈ","ಷೌ","ಷ್","ಷ್ಷ",
-  "ಸ","ಸಂ","ಸಃ","ಸಾ","ಸಿ","ಸೀ","ಸು","ಸೂ","ಸೃ","ಸೆ","ಸೊ","ಸೋ","ಸೇ","ಸೈ","ಸೌ","ಸ್","ಸ್ಸ",
-  "ಹ","ಹಂ","ಹಃ","ಹಾ","ಹಿ","ಹೀ","ಹು","ಹೂ","ಹೃ","ಹೆ","ಹೊ","ಹೋ","ಹೇ","ಹೈ","ಹೌ","ಹ್ಹ",
-  "ೠ","೦","೧","೨","೩","೪","೫","೬","೭","೮","೯"
-]
-
 # Canvas / preprocessing defaults
 DEFAULT_TARGET_SIZE = 64  # align with existing checkpoint (previous resolution)
 CANVAS_BG = 255
@@ -157,64 +118,136 @@ class WorkingKannadaCNN(torch.nn.Module):
         return x
 
 def load_model():
+    """Load the improved model"""
     global model, class_names
 
     print("Loading improved model...")
 
-    checkpoint_path = "checkpoints/best_improved.pt"
-    checkpoint = torch.load(checkpoint_path, map_location=device)
+    # Try to load the best available model
+    checkpoint_paths = [
+        "checkpoints/best_improved.pt",
+        "checkpoints/best.pt"
+    ]
 
-    print("Checkpoint loaded successfully")
-    print("Architecture:", checkpoint.get("architecture"))
-    print("Number of classes:", checkpoint.get("num_classes"))
-    print("Validation accuracy:", checkpoint.get("val_acc"))
+    checkpoint_path = None
+    for path in checkpoint_paths:
+        if os.path.exists(path):
+            checkpoint_path = path
+            print(f"Found checkpoint: {path}")
+            break
 
-    num_classes = checkpoint["num_classes"]
+    if checkpoint_path is None:
+        print("No trained model found. Creating a new improved model...")
+        model = ImprovedKannadaCNN(num_classes=391).to(device)
+        class_names = [f"Class_{i}" for i in range(391)]
+        return True
 
-    # ----- CREATE MODEL (MATCH CHECKPOINT EXACTLY) -----
-    model = KannadaCNN(
-        num_classes=num_classes,
-        embedding_dim=256   # MUST match checkpoint
-    ).to(device)
+    try:
+        checkpoint = torch.load(checkpoint_path, map_location=device)
+        print("Checkpoint loaded successfully")
+        print(f"   Architecture: {checkpoint.get('architecture', 'Unknown')}")
+        print(f"   Number of classes: {checkpoint.get('num_classes', 'Unknown')}")
+        print(f"   Validation accuracy: {checkpoint.get('val_acc', 'Unknown')}%")
 
-    model.load_state_dict(checkpoint["model"], strict=True)
-    model.eval()
+        # ===== CREATE MODEL (MUST MATCH TRAINING) =====
+        architecture = checkpoint.get("architecture", "WorkingKannadaCNN")
+        num_classes = checkpoint["num_classes"]
 
-    # ----- NO CLASS FILE (OLD BEHAVIOR) -----
-    # Use numeric labels as strings: "0", "1", "2", ...
-    class_names = [str(i) for i in range(num_classes)]
+        if architecture == "ImprovedKannadaCNN":
+            model = ImprovedKannadaCNN(num_classes=num_classes, use_bilstm=True).to(device)
+            print("Using ImprovedKannadaCNN with BiLSTM and attention")
 
-    print(f"Model loaded successfully with {num_classes} classes (index-based labels)")
-    return True
+        elif architecture == "KannadaCNN":
+            model = KannadaCNN(num_classes=num_classes).to(device)
+            print("Using KannadaCNN")
 
+        else:
+            model = WorkingKannadaCNN(num_classes=num_classes).to(device)
+            print("Using WorkingKannadaCNN (fallback)")
+
+        model.load_state_dict(checkpoint["model"], strict=True)
+        model.eval()
+
+        # ===== LOAD CLASS NAMES (PRIORITY ORDER) =====
+
+        # 1️⃣ FIRST: try idx_to_class.json (BEST & SAFE)
+        idx_path = "checkpoints/idx_to_class.json"
+        if os.path.exists(idx_path):
+            with open(idx_path, "r", encoding="utf-8") as f:
+                idx_to_class = json.load(f)
+
+            # Ensure correct index order: "0","1","2",...
+            class_names = [idx_to_class[str(i)] for i in range(len(idx_to_class))]
+            print("Loaded class names from idx_to_class.json")
+
+        # 2️⃣ FALLBACK: checkpoint classes
+        else:
+            class_names = checkpoint.get(
+                "classes",
+                [f"Class_{i}" for i in range(num_classes)]
+            )
+            print("Loaded class names from checkpoint")
+
+        # ===== FINAL SAFETY CHECK =====
+        if len(class_names) != num_classes:
+            raise ValueError(
+                f"Class count mismatch: model expects {num_classes}, "
+                f"but got {len(class_names)} labels"
+            )
+
+        print(f"Model loaded with {len(class_names)} classes")
+        return True
+
+    except Exception as e:
+        print(f"❌ Error loading model: {e}")
+        model = ImprovedKannadaCNN(num_classes=391).to(device)
+        class_names = [f"Class_{i}" for i in range(391)]
+        return True
 
 def _to_square_with_padding(img_array: np.ndarray, target_size: int = DEFAULT_TARGET_SIZE, margin: int = 6) -> np.ndarray:
-    """Crop to content bbox, pad, and resize to a square while preserving aspect."""
-    # Invert if background dark? assume white bg
-    # Find non-white pixels
-    coords = cv2.findNonZero(255 - img_array)
-    if coords is not None:
+    """
+    Crop to content bbox, pad, and resize to a square while preserving aspect.
+    Enhanced for ottaksharas: preserves thin strokes and compound characters.
+    """
+    # Normalize to ensure white background (255)
+    # Handle both white-on-black and black-on-white inputs
+    if np.mean(img_array) < 128:
+        # Likely black background, invert
+        img_array = 255 - img_array
+    
+    # Find non-white pixels (content)
+    # Use a threshold slightly below 255 to catch near-white pixels
+    non_white_mask = img_array < 250
+    coords = cv2.findNonZero((255 - img_array).astype(np.uint8))
+    
+    if coords is not None and len(coords) > 0:
         x, y, w, h = cv2.boundingRect(coords)
+        # Increased margin for ottaksharas to preserve context
         x0 = max(x - margin, 0)
         y0 = max(y - margin, 0)
         x1 = min(x + w + margin, img_array.shape[1])
         y1 = min(y + h + margin, img_array.shape[0])
-        cropped = img_array[y0:y1, x0:x1]
+        cropped = img_array[y0:y1, x0:x1].copy()
     else:
-        cropped = img_array
+        cropped = img_array.copy()
 
     h, w = cropped.shape
     # Preserve aspect: pad to square before resize
+    # Use max dimension to ensure no cropping
     size = max(h, w)
+    if size == 0:
+        size = target_size
+    
     padded = np.full((size, size), CANVAS_BG, dtype=np.uint8)
     y_off = (size - h) // 2
     x_off = (size - w) // 2
     padded[y_off:y_off + h, x_off:x_off + w] = cropped
 
+    # Use high-quality interpolation to preserve thin strokes
     resized = cv2.resize(
         padded,
         (target_size, target_size),
-        interpolation=cv2.INTER_LANCZOS4
+        interpolation=cv2.INTER_LANCZOS4  # Best quality for preserving details
     )
     return resized
 
@@ -222,87 +255,164 @@ def _to_square_with_padding(img_array: np.ndarray, target_size: int = DEFAULT_TA
 def preprocess_image(image: Image.Image, enhanced: bool = True, target_size: int = DEFAULT_TARGET_SIZE):
     """
     Enhanced preprocessing for prediction with fine detail preservation for ottaksharas/words.
-    - Gentle denoising
+    - Gentle denoising (preserves thin strokes)
+    - NO aggressive thresholding (preserves virama marks and compound characters)
     - BBox crop with padding
-    - Aspect-ratio preserving pad -> square resize (higher res)
+    - Aspect-ratio preserving pad -> square resize
+    - Normalization matches training exactly
     """
     if image.mode != 'L':
         image = image.convert('L')
 
-    img_array = np.array(image)
-
-    # Gentle denoising that preserves thin strokes
+    img_array = np.array(image).astype(np.uint8)
+    
+    # Normalize background to white (255) - handle both formats
+    if np.mean(img_array) < 128:
+        # Likely inverted (black bg), invert to white bg
+        img_array = 255 - img_array
+    
+    # Gentle denoising that preserves thin strokes and edges
+    # Critical for ottaksharas: avoid aggressive filtering
     if enhanced:
-        img_array = cv2.bilateralFilter(img_array, 3, 30, 30)
-
-    # Normalize background to white
+        # Very gentle bilateral filter - preserves fine details
+        img_array = cv2.bilateralFilter(img_array, d=3, sigmaColor=30, sigmaSpace=30)
+    
+    # Ensure values are in valid range
     img_array = np.clip(img_array, 0, 255).astype(np.uint8)
+    
+    # NO aggressive thresholding - preserves compound characters and virama marks
+    # The model was trained on grayscale images, not binary
+    
+    # Enhanced padding for ottaksharas (compound characters need more context)
+    processed = _to_square_with_padding(img_array, target_size=target_size, margin=12)
 
-    processed = _to_square_with_padding(img_array, target_size=target_size, margin=10)
-
+    # Transform matching training pipeline exactly
+    # Training uses: ToTensor -> Normalize(mean=[0.485], std=[0.229])
     transform = T.Compose([
         T.ToTensor(),
-        T.Normalize(mean=[0.485], std=[0.229])  # match original checkpoint normalization
+        T.Normalize(mean=[0.485], std=[0.229])  # Match training normalization exactly
     ])
 
     tensor = transform(Image.fromarray(processed)).unsqueeze(0)
     return tensor.to(device)
 
-def predict_character(image_tensor):
+def predict_character_with_top5(image_tensor, print_top5=False):
+    """
+    Predict a single character/word with top-5 predictions and confidence scores.
+    Returns tuple: (predicted_text, top5_list)
+    top5_list: [(class_name, confidence), ...]
+    """
     if model is None:
-        return None
-
+        return None, []
+    
     try:
-        model.eval()
         with torch.no_grad():
-            # Model returns (features, logits) tuple
-            features, logits = model(image_tensor)
-            predicted_idx = logits.argmax(dim=1).item()
+            # Handle models that return (features, logits) vs just logits
+            # ImprovedKannadaCNN returns (z, logits), KannadaCNN returns logits
+            outputs = model(image_tensor)
+            if isinstance(outputs, tuple) and len(outputs) == 2:
+                # Model returns (features, logits) - use logits
+                _, outputs = outputs
             
-            # Get confidence score
-            probs = F.softmax(logits, dim=1)
-            confidence = probs[0][predicted_idx].item()
-
-            predicted_char = TRAIN_CLASSES[predicted_idx]
-            return predicted_char, confidence
-
+            # Get probabilities using softmax
+            probs = F.softmax(outputs, dim=1)
+            
+            # Get top-5 predictions
+            top5_probs, top5_indices = torch.topk(probs, k=min(5, len(class_names)), dim=1)
+            
+            top5_list = []
+            for i in range(top5_indices.shape[1]):
+                idx = top5_indices[0, i].item()
+                conf = top5_probs[0, i].item()
+                class_name = class_names[idx] if idx < len(class_names) else "Unknown"
+                top5_list.append((class_name, conf))
+            
+            # Best prediction
+            predicted_idx = top5_indices[0, 0].item()
+            predicted_character = class_names[predicted_idx] if predicted_idx < len(class_names) else "Unknown"
+            
+            # Top-5 predictions available but not printed (kept for internal use)
+            
+            return predicted_character, top5_list
+            
     except Exception as e:
-        print(f"Error in predict_character: {e}")
+        print(f"Error in predict_character_with_top5: {e}")
         import traceback
         traceback.print_exc()
-        return "Error", 0.0
+        return "Error", []
 
-
-
+def predict_character(image_tensor):
+    """Predict a single character/word. Returns only final text (backward compatibility)."""
+    predicted_text, _ = predict_character_with_top5(image_tensor, print_top5=False)
+    return predicted_text
 
 def segment_characters(image):
-    """Segment multiple characters from an image"""
+    """
+    Segment multiple characters from an image.
+    Works with both Canvas images (white bg, black strokes) and uploaded images.
+    Returns: (list of PIL Images, list of bounding boxes)
+    """
     try:
-        # Convert PIL to OpenCV format
-        img_array = np.array(image.convert('L'))
+        # Convert PIL to OpenCV format (grayscale)
+        if isinstance(image, Image.Image):
+            img_array = np.array(image.convert('L'))
+        else:
+            img_array = np.array(image)
         
-        # Apply threshold
+        # Ensure we have a proper grayscale image
+        if len(img_array.shape) == 3:
+            img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+        
+        # Canvas images: white background (255), black strokes (0)
+        # Normalize to ensure consistent format
+        mean_val = np.mean(img_array)
+        if mean_val < 128:
+            # Likely inverted (black background) - invert to white bg
+            img_array = 255 - img_array
+        
+        # Apply threshold to get binary image (black strokes on white background)
+        # Use OTSU for automatic threshold selection
         _, binary = cv2.threshold(img_array, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
         
-        # Find contours
+        # Find contours (external only to avoid nested contours)
         contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        if not contours:
+            print("No contours found in image")
+            return [], []
         
         # Filter and sort contours
         character_boxes = []
         for contour in contours:
             x, y, w, h = cv2.boundingRect(contour)
-            if w >= 18 and h >= 18:  # Minimum size filter
+            # Minimum size filter - reduced for Canvas which may have smaller strokes
+            # But ensure we don't capture noise
+            if w >= 15 and h >= 15:
                 character_boxes.append((x, y, w, h))
         
-        # Sort by x-coordinate (left to right)
+        if not character_boxes:
+            print(f"No valid character boxes found (filtered {len(contours)} contours)")
+            return [], []
+        
+        # Sort by x-coordinate (left to right) for proper reading order
         character_boxes.sort(key=lambda box: box[0])
         
-        # Extract character images
+        print(f"Segmented {len(character_boxes)} characters")
+        
+        # Extract character images from original grayscale image
         characters = []
         for x, y, w, h in character_boxes:
-            char_img = img_array[y:y+h, x:x+w]
-            # Add padding
+            # Extract character region
+            char_img = img_array[y:y+h, x:x+w].copy()
+            
+            # Ensure white background for extracted character
+            if np.mean(char_img) < 128:
+                char_img = 255 - char_img
+            
+            # Add padding around character for better recognition
             char_img = cv2.copyMakeBorder(char_img, 12, 12, 12, 12, cv2.BORDER_CONSTANT, value=255)
+            
+            # Convert back to PIL Image
             char_pil = Image.fromarray(char_img)
             characters.append(char_pil)
         
@@ -310,6 +420,8 @@ def segment_characters(image):
         
     except Exception as e:
         print(f"Error in segment_characters: {e}")
+        import traceback
+        traceback.print_exc()
         return [], []
 
 
@@ -537,12 +649,16 @@ def navigate():
 def recognize():
     """
     Recognize text in current image.
-    Returns final predicted text.
+    Returns final predicted text plus confidence metadata.
+    
+    mode:
+        - 'word' / 'single': treat full image as a single class (ottaksharas supported)
+        - 'sequence' or 'sentence': segment into characters and infer spaces
     """
     try:
         data = request.get_json()
         session_id = data.get('session_id')
-        mode = data.get('mode', 'word')
+        mode = data.get('mode', 'word')  # default to word/full-image
         
         if session_id not in uploaded_files:
             return jsonify({'error': 'Session not found'}), 400
@@ -550,68 +666,109 @@ def recognize():
         session_data = uploaded_files[session_id]
         current_image = session_data['images'][session_data['current_index']]
         
-        # -------- SEQUENCE / SENTENCE MODE --------
+        # Default confidence metadata
+        confidence = None
+        is_uncertain = False
+        uncertainty_message = ""
+        
+        # Confidence threshold for uncertainty messaging
+        UNCERTAIN_THRESHOLD = 0.6
+        
         if mode in ['sequence', 'sentence']:
+            # Segment image into characters (works for both Canvas and Upload)
+            # Canvas images are stored as PIL Images, same as uploads
             char_items = segment_with_spaces(current_image)
+            
+            # STRICT: If segmentation fails, return error (no silent fallback)
             if not char_items:
-                return jsonify({'error': 'No characters detected'}), 400
+                print(f"Error: Segmentation failed for {mode} mode - no characters detected")
+                return jsonify({
+                    'success': False,
+                    'error': 'Canvas sequence requires multiple separated characters',
+                    'mode': mode
+                }), 400
+            
+            # Verify we have at least 2 characters for sequence/sentence modes
+            # (single character should use Word/Single mode)
+            actual_char_count = sum(1 for _, is_space in char_items if not is_space)
+            if actual_char_count < 2:
+                print(f"Error: Only {actual_char_count} character(s) detected - use Word/Single mode for single characters")
+                return jsonify({
+                    'success': False,
+                    'error': 'Canvas sequence requires multiple separated characters',
+                    'mode': mode
+                }), 400
             
             sequence = ""
-            total_confidence = 0.0
-            char_count = 0
-            for char_img, is_space in char_items:
+            char_confidences = []
+            
+            # Process each segmented character INDIVIDUALLY
+            # Each character is preprocessed and predicted separately
+            for idx, (char_img, is_space) in enumerate(char_items):
                 if is_space:
-                    sequence += " "
+                    # Add space ONLY for sentence mode when gap is detected
+                    if mode == 'sentence':
+                        sequence += " "
                     continue
                 
-                char_tensor = preprocess_image(
-                    char_img,
-                    enhanced=True,
-                    target_size=DEFAULT_TARGET_SIZE
-                )
-                predicted_char, confidence = predict_character(char_tensor)
+                # Preprocess EACH character individually
+                if char_img is None:
+                    continue  # Skip None entries (shouldn't happen, but safety check)
+                
+                char_tensor = preprocess_image(char_img, enhanced=True, target_size=DEFAULT_TARGET_SIZE)
+                # Prediction is based ONLY on model output tensor
+                predicted_char, top5_list = predict_character_with_top5(char_tensor, print_top5=False)
+                
+                # Append predicted character to sequence
                 sequence += predicted_char
-                total_confidence += confidence
-                char_count += 1
+                
+                # Track confidence for each character
+                if top5_list:
+                    char_confidences.append(top5_list[0][1])
             
-            final_text = sequence.strip()
-            avg_confidence = total_confidence / char_count if char_count > 0 else 0.0
+            # Calculate overall confidence from individual character confidences
+            if char_confidences:
+                confidence = float(np.mean(char_confidences))
+                if confidence < UNCERTAIN_THRESHOLD:
+                    is_uncertain = True
+                    uncertainty_message = "Uncertain prediction – ottakshara may require clearer strokes"
+            else:
+                confidence = None
             
             return jsonify({
                 'success': True,
                 'mode': mode,
-                'sequence': final_text,  # Frontend expects this
-                'predicted_text': final_text,
-                'text': final_text,
-                'confidence': avg_confidence
+                'predicted_text': sequence.strip(),
+                'confidence': confidence,
+                'is_uncertain': is_uncertain,
+                'uncertainty_message': uncertainty_message
             })
-        
-        # -------- SINGLE / WORD MODE --------
         else:
-            char_tensor = preprocess_image(
-                current_image,
-                enhanced=True,
-                target_size=DEFAULT_TARGET_SIZE
-            )
-            predicted_char, confidence = predict_character(char_tensor)
+            # Word/single mode: treat entire image as single class (no segmentation)
+            # This is critical for ottaksharas which are compound characters
+            char_tensor = preprocess_image(current_image, enhanced=True, target_size=DEFAULT_TARGET_SIZE)
+            
+            # Prediction is based only on model output tensor
+            predicted_char, top5_list = predict_character_with_top5(char_tensor, print_top5=False)
+            
+            if top5_list:
+                confidence = float(top5_list[0][1])
+                if confidence < UNCERTAIN_THRESHOLD:
+                    is_uncertain = True
+                    uncertainty_message = "Uncertain prediction – ottakshara may require clearer strokes"
             
             return jsonify({
                 'success': True,
                 'mode': 'word',
-                'predicted_character': predicted_char,  # Frontend expects this
                 'predicted_text': predicted_char,
-                'text': predicted_char,
-                'confidence': confidence
+                'confidence': confidence,
+                'is_uncertain': is_uncertain,
+                'uncertainty_message': uncertainty_message
             })
         
     except Exception as e:
         print(f"Error in recognize: {e}")
-        return jsonify({
-            'error': str(e),
-            'text': 'Error',
-            'confidence': 0
-        }), 500
-
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/predict', methods=['POST'])
@@ -630,8 +787,8 @@ def predict_endpoint():
         
         image = Image.open(io.BytesIO(file.read()))
         tensor = preprocess_image(image, enhanced=True, target_size=DEFAULT_TARGET_SIZE)
-        predicted_char, confidence = predict_character(tensor)
-        return jsonify({'success': True, 'predicted_text': predicted_char, 'confidence': confidence})
+        predicted_char = predict_character(tensor)
+        return jsonify({'success': True, 'predicted_text': predicted_char})
     except Exception as e:
         print(f"Error in /predict: {e}")
         return jsonify({'error': str(e)}), 500

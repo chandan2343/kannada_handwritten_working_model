@@ -3,1302 +3,905 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ಕನ್ನಡ Handwritten Character Recognition</title>
+    <title>ಕನ್ನಡ Handwritten Characters Recognition</title>
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #28a745;
-            --danger-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #17a2b8;
-            --bg-light: #ffffff;
-            --bg-dark: #1a1a2e;
-            --text-light: #333;
-            --text-dark: #e0e0e0;
-            --card-bg-light: #ffffff;
-            --card-bg-dark: #16213e;
-            --shadow: 0 10px 30px rgba(0,0,0,0.1);
-            --shadow-dark: 0 10px 30px rgba(0,0,0,0.3);
+            --bg: #5a319dff;
+            --card: rgba(34, 74, 105, 0.08);
+            --card-dark: rgba(12, 16, 32, 0.92);
+            --text: #e8ecff;
+            --muted: #a7b2d9;
+            --accent: #7c3aed;
+            --accent-2: #00c6ff;
+            --stroke: #0d162d;
+            --shadow: 0 18px 50px rgba(0,0,0,0.35);
+            --radius: 18px;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background:
+                radial-gradient(circle at 20% 20%, rgba(124,58,237,0.18), transparent 32%),
+                radial-gradient(circle at 80% 0%, rgba(0,198,255,0.16), transparent 28%),
+                linear-gradient(145deg, rgba(6,9,24,0.95) 0%, rgba(8,12,28,0.9) 60%, rgba(6,9,24,0.96) 100%),
+                url("{{ url_for('static', filename='background.jpg') }}") center/cover fixed;
+            color: var(--text);
             min-height: 100vh;
-            transition: background 0.3s ease;
+            background-attachment: fixed;
         }
-
         body.dark-mode {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            filter: brightness(0.96);
+            background:
+                radial-gradient(circle at 20% 20%, rgba(124,58,237,0.22), transparent 32%),
+                radial-gradient(circle at 80% 0%, rgba(0,198,255,0.20), transparent 28%),
+                linear-gradient(145deg, rgba(4,6,14,0.97) 0%, rgba(7,10,20,0.94) 60%, rgba(4,6,14,0.98) 100%),
+                url("{{ url_for('static', filename='background.jpg') }}") center/cover fixed;
         }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
+        body::after {
+            content:"";
+            position: fixed;
+            inset:0;
+            pointer-events: none;
+            background: radial-gradient(circle at 15% 80%, rgba(255,255,255,0.05), transparent 32%),
+                        radial-gradient(circle at 90% 50%, rgba(255,255,255,0.04), transparent 28%);
+            mix-blend-mode: screen;
         }
-
-        /* Header */
-        .header {
+        .container { max-width: 1280px; margin: 0 auto; padding: 20px; position: relative; z-index:1; }
+        header {
+            display:flex; justify-content:space-between; align-items:center;
+            background: rgba(255,255,255,0.06);
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            border:1px solid rgba(255,255,255,0.12);
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+            backdrop-filter: blur(10px);
+        }
+        h1 { font-size: clamp(24px, 3vw, 32px); color:#f5f7ff; letter-spacing:0.4px; }
+        .theme-toggle {
+            border:none; cursor:pointer; border-radius:12px; padding:10px 14px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color:#0a0f1f; font-weight:700; box-shadow: 0 12px 30px rgba(0,198,255,0.3);
+        }
+        main { display:grid; grid-template-columns: 1.1fr 0.9fr; gap:18px; }
+        @media(max-width: 900px){ main { grid-template-columns:1fr; } }
+        .card {
+            background: rgba(255,255,255,0.08);
+            border:1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 18px;
+            backdrop-filter: blur(12px);
+        }
+        .card h2 { margin-bottom:10px; font-size:20px; color:#f0f4ff; }
+        .muted { color: var(--muted); font-size: 0.95rem; margin-bottom:12px; }
+        .canvas-wrap {
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius);
+            border:1px dashed rgba(255,255,255,0.16);
+            padding:12px;
+            display:none;
+            justify-content:center;
+            align-items:center;
+            min-height: 360px;
+        }
+        .canvas-wrap.active {
+            display:flex;
+        }
+        canvas {
+            width: 100%;
+            max-width: 640px;
+            height: 320px;
+            background:#fff;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+            touch-action: none;
+        }
+        .image-display {
+            background: rgba(255,255,255,0.05);
+            border-radius: var(--radius);
+            border:1px dashed rgba(255,255,255,0.16);
+            padding:12px;
+            display:none;
+            justify-content:center;
+            align-items:center;
+            min-height: 360px;
+        }
+        .image-display.active {
+            display:flex;
+        }
+        .image-display {
+            position: relative;
+        }
+        .image-display img {
+            width: 100%;
+            max-width: 640px;
+            height: 320px;
+            object-fit: contain;
+            background:#fff;
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.4);
+        }
+        .image-navigation {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            color: white;
+            margin-top: 12px;
+            gap: 12px;
         }
-
-        .header h1 {
-            font-size: 2.5em;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .theme-toggle {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Main Grid */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr 350px;
-            gap: 20px;
-        }
-
-        @media (max-width: 1200px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Sidebar */
-        .sidebar {
-            background: var(--card-bg-light);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        body.dark-mode .sidebar {
-            background: var(--card-bg-dark);
-            box-shadow: var(--shadow-dark);
-        }
-
-        .sidebar h2 {
-            color: var(--text-light);
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 1.5em;
-        }
-
-        body.dark-mode .sidebar h2 {
-            color: var(--text-dark);
-        }
-
-        .upload-option {
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 2px dashed #ddd;
-            border-radius: 10px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .upload-option {
-            border-color: #444;
-        }
-
-        .upload-option:hover {
-            border-color: var(--primary-color);
-            background-color: #f8f9ff;
-        }
-
-        body.dark-mode .upload-option:hover {
-            background-color: #1e2746;
-        }
-
-        .upload-option.active {
-            border-color: var(--primary-color);
-            background-color: #f0f4ff;
-        }
-
-        body.dark-mode .upload-option.active {
-            background-color: #1e2746;
-        }
-
-        .upload-option h3 {
-            color: var(--text-light);
-            margin-bottom: 8px;
-            font-size: 1.1em;
-        }
-
-        body.dark-mode .upload-option h3 {
-            color: var(--text-dark);
-        }
-
-        .upload-option p {
-            color: #666;
-            font-size: 0.9em;
-            margin-bottom: 10px;
-        }
-
-        body.dark-mode .upload-option p {
-            color: #aaa;
-        }
-
-        .file-input {
-            display: none;
-        }
-
-        .btn {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9em;
-            width: 100%;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Drawing Canvas */
-        .drawing-section {
-            background: var(--card-bg-light);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        body.dark-mode .drawing-section {
-            background: var(--card-bg-dark);
-            box-shadow: var(--shadow-dark);
-        }
-
-        .drawing-section h3 {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        body.dark-mode .drawing-section h3 {
-            color: var(--text-dark);
-        }
-
-        .canvas-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        #drawingCanvas {
-            border: 3px solid #ddd;
-            border-radius: 10px;
-            cursor: crosshair;
-            background: white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            touch-action: none;
-        }
-
-        body.dark-mode #drawingCanvas {
-            border-color: #444;
-            background: #2a2a3e;
-        }
-
-        .canvas-controls {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .canvas-btn {
-            padding: 8px 16px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-        }
-
-        .canvas-btn.clear {
-            background: var(--danger-color);
-            color: white;
-        }
-
-        .canvas-btn.recognize {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .canvas-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        /* Main Content */
-        .main-content {
-            background: var(--card-bg-light);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        body.dark-mode .main-content {
-            background: var(--card-bg-dark);
-            box-shadow: var(--shadow-dark);
-        }
-
-        .image-viewer {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .image-container {
-            max-width: 100%;
-            max-height: 500px;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-
-        .image-container img {
-            max-width: 100%;
-            max-height: 100%;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .navigation {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
         .nav-btn {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 50%;
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.12);
+            color: #e8ecff;
             cursor: pointer;
-            font-size: 1.2em;
-            transition: all 0.3s ease;
+            font-weight: 500;
+            transition: all 0.2s;
+            flex: 0 0 auto;
         }
-
-        .nav-btn:hover {
-            background: #5a6fd8;
-            transform: scale(1.1);
+        .nav-btn:hover:not(:disabled) {
+            background: rgba(255,255,255,0.18);
+            transform: translateY(-1px);
         }
-
         .nav-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
-
+        .nav-btn:active {
+            transform: translateY(0);
+        }
         .image-counter {
-            color: var(--text-light);
-            font-weight: bold;
+            color: var(--muted);
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+            text-align: center;
         }
-
-        body.dark-mode .image-counter {
-            color: var(--text-dark);
+        .tool-controls {
+            display:flex;
+            gap:10px;
+            margin-top:12px;
+            align-items:center;
         }
-
-        .recognize-btn {
-            background: linear-gradient(135deg, var(--success-color) 0%, #20c997 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 1.1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-            width: 100%;
+        .tool-btn {
+            padding:8px 16px;
+            border-radius:8px;
+            border:1px solid rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.12);
+            color:#e8ecff;
+            cursor:pointer;
+            font-weight:500;
+            transition: all 0.2s;
+            display:flex;
+            align-items:center;
+            gap:6px;
         }
-
-        .recognize-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        .tool-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color:#0a0f1f;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(124,58,237,0.3);
         }
-
-        .recognize-btn:disabled {
-            opacity: 0.6;
+        .tool-btn:hover {
+            background: rgba(255,255,255,0.18);
+            transform: translateY(-1px);
+        }
+        .tool-btn.active:hover {
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 6px 16px rgba(124,58,237,0.4);
+        }
+        .tool-btn:active {
+            transform: translateY(0);
+        }
+        .controls { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+        .btn {
+            border:none; cursor:pointer; border-radius:12px; padding:10px 14px;
+            font-weight:600; color:#0a0f1f;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            box-shadow: 0 12px 28px rgba(124,58,237,0.3);
+        }
+        .btn.secondary { background: rgba(255,255,255,0.12); color:#e8ecff; border:1px solid rgba(255,255,255,0.18); box-shadow:none; }
+        .inline {
+            display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:12px;
+        }
+        label { color:#cfd6f2; font-size:0.95rem; }
+        .mode-toggle { display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+        .pill {
+            padding:8px 12px; border-radius:10px; cursor:pointer;
+            background: rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.16); color:#e8ecff;
+            position: relative;
+        }
+        .pill input { margin-right:6px; }
+        .pill.disabled {
+            opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
+            pointer-events: none;
         }
-
-        /* Results */
-        .results {
-            background: #f8f9ff;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            display: none;
-            transition: background 0.3s ease;
-        }
-
-        body.dark-mode .results {
-            background: #1e2746;
-        }
-
-        .results h3 {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        body.dark-mode .results h3 {
-            color: var(--text-dark);
-        }
-
-        .predicted-text {
-            font-size: 3em;
-            font-weight: bold;
-            color: var(--text-light);
-            margin-bottom: 20px;
-            text-align: center;
-            min-height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Noto Sans Kannada', sans-serif;
-        }
-
-        body.dark-mode .predicted-text {
-            color: var(--text-dark);
-        }
-
-        .confidence-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-
-        body.dark-mode .confidence-bar {
-            background: #2a2a3e;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--success-color), #20c997);
-            border-radius: 15px;
-            transition: width 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .top5-predictions {
-            margin-top: 20px;
-        }
-
-        .top5-predictions h4 {
-            color: var(--text-light);
-            margin-bottom: 15px;
-        }
-
-        body.dark-mode .top5-predictions h4 {
-            color: var(--text-dark);
-        }
-
-        .prediction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin-bottom: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .prediction-item {
-            background: #2a2a3e;
-        }
-
-        .prediction-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        .prediction-char {
-            font-size: 2em;
-            font-weight: bold;
-            color: var(--text-light);
-            font-family: 'Noto Sans Kannada', sans-serif;
-        }
-
-        body.dark-mode .prediction-char {
-            color: var(--text-dark);
-        }
-
-        .prediction-conf {
-            color: #666;
-            font-weight: bold;
-        }
-
-        body.dark-mode .prediction-conf {
-            color: #aaa;
-        }
-
-        .tts-btn {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 25px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 10px;
-        }
-
-        .tts-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-        .tts-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .download-btn {
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s ease;
-            color: white;
-        }
-
-        .download-btn.text {
-            background: var(--info-color);
-        }
-
-        .download-btn.pdf {
-            background: var(--danger-color);
-        }
-
-        .download-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        /* History Sidebar */
-        .history-sidebar {
-            background: var(--card-bg-light);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: var(--shadow);
-            height: fit-content;
-            max-height: 800px;
-            overflow-y: auto;
-            transition: background 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        body.dark-mode .history-sidebar {
-            background: var(--card-bg-dark);
-            box-shadow: var(--shadow-dark);
-        }
-
-        .history-sidebar h3 {
-            color: var(--text-light);
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        body.dark-mode .history-sidebar h3 {
-            color: var(--text-dark);
-        }
-
-        .history-item {
-            padding: 12px;
-            margin-bottom: 10px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        body.dark-mode .history-item {
-            background: #2a2a3e;
-        }
-
-        .history-item:hover {
-            transform: translateX(5px);
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-        }
-
-        .history-char {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: var(--text-light);
+        .pill[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 10px;
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 1000;
             margin-bottom: 5px;
-            font-family: 'Noto Sans Kannada', sans-serif;
+            pointer-events: none;
         }
-
-        body.dark-mode .history-char {
-            color: var(--text-dark);
+        .pill[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0,0,0,0.9);
+            z-index: 1000;
+            margin-bottom: -5px;
         }
-
-        .history-time {
-            font-size: 0.8em;
-            color: #666;
+        .uploaders { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+        .file-input { display:none; }
+        .output-text {
+            font-size: clamp(20px, 4vw, 34px);
+            font-weight: 700;
+            color:#f5f7ff;
+            min-height: 64px;
+            padding:12px 0;
+            word-break: break-word;
         }
-
-        body.dark-mode .history-time {
-            color: #aaa;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            display: none;
-        }
-
+        .output-label { color:#cfd6f2; font-size: 0.95rem; letter-spacing:0.3px; }
+        .output-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+        .status { margin-top:10px; color: var(--muted); font-size:0.9rem; }
+        .hidden { display:none; }
+        .loading { display:none; text-align:center; margin-top:10px; color:#cfd6f2; }
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            width:28px; height:28px; border-radius:50%;
+            border:3px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent-2);
+            animation: spin 0.9s linear infinite;
+            margin:0 auto 8px;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .error {
-            background: #ffe6e6;
-            color: #d63031;
-            padding: 15px;
-            border-radius: 10px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        body.dark-mode .error {
-            background: #3d1e1e;
-            color: #ff6b6b;
-        }
-
-        @media (max-width: 768px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .predicted-text {
-                font-size: 2em;
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>ಕನ್ನಡ Handwritten Character Recognition</h1>
-            <button class="theme-toggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-        </div>
+        <header>
+            <h1>ಕನ್ನಡ Handwritten Characters Recognition</h1>
+            <button class="theme-toggle" onclick="toggleDarkMode()">🌙 / ☀</button>
+        </header>
 
-        <div class="main-grid">
-            <!-- Left Sidebar -->
-            <div class="sidebar">
-                <h2>📁 Upload Options</h2>
-                
-                <div class="upload-option" id="drawOption">
-                    <h3>✏️ Draw Character</h3>
-                    <p>Draw a Kannada character on the canvas</p>
-                </div>
-
-                <div class="upload-option" id="singleOption">
-                    <h3>📷 Single Image</h3>
-                    <p>Upload single image to recognize</p>
+        <main>
+            <section class="card">
+                <h2>Draw or Upload</h2>
+                <p class="muted">Write single characters, compound ottaksharas, or full words. Use the canvas or upload images.</p>
+                <div class="uploaders">
+                    <button class="btn secondary" onclick="openCanvas()">✏ Open Canvas</button>
+                    <button class="btn secondary" onclick="document.getElementById('singleInput').click()">📷 Single Image</button>
+                    <button class="btn secondary" onclick="document.getElementById('multipleInput').click()">🖼 Multiple Images</button>
                     <input type="file" id="singleInput" class="file-input" accept="image/*">
-                    <button class="btn" onclick="document.getElementById('singleInput').click()">
-                        Choose Image
-                    </button>
-                </div>
-
-                <div class="upload-option" id="multipleOption">
-                    <h3>🖼️ Multiple Images</h3>
-                    <p>Upload multiple images</p>
                     <input type="file" id="multipleInput" class="file-input" accept="image/*" multiple>
-                    <button class="btn" onclick="document.getElementById('multipleInput').click()">
-                        Choose Images
-                    </button>
                 </div>
-
-                <div class="upload-option" id="pdfOption">
-                    <h3>📄 PDF Document</h3>
-                    <p>Upload PDF with up to 40 pages</p>
-                    <input type="file" id="pdfInput" class="file-input" accept=".pdf">
-                    <button class="btn" onclick="document.getElementById('pdfInput').click()">
-                        Choose PDF
-                    </button>
+                <div class="canvas-wrap" id="canvasWrap">
+                    <canvas id="drawingCanvas" width="512" height="320"></canvas>
                 </div>
-            </div>
-
-            <!-- Main Content -->
-            <div class="main-content">
-                <!-- Drawing Canvas Section -->
-                <div class="drawing-section" id="drawingSection" style="display: none;">
-                    <h3>Draw a Kannada Character</h3>
-                    <div class="canvas-container">
-                        <canvas id="drawingCanvas" width="400" height="400"></canvas>
-                    </div>
-                    <div class="canvas-controls">
-                        <button class="canvas-btn clear" onclick="clearCanvas()">Clear</button>
-                        <button class="canvas-btn recognize" onclick="recognizeDrawing()">Recognize</button>
-                    </div>
-                </div>
-
-                <!-- Image Viewer -->
-                <div class="image-viewer" id="imageViewer" style="display: none;">
-                    <div class="image-container" id="imageContainer"></div>
-                    <div class="navigation" id="navigation" style="display: none;">
-                        <button class="nav-btn" id="prevBtn" onclick="navigate('prev')">‹</button>
+                <div class="image-display" id="imageDisplay">
+                    <img id="uploadedImage" src="" alt="Uploaded image">
+                    <div class="image-navigation" id="imageNavigation" style="display:none;">
+                        <button class="nav-btn" id="prevBtn" onclick="navigateImage('prev')">◀ Previous</button>
                         <span class="image-counter" id="imageCounter">1 / 1</span>
-                        <button class="nav-btn" id="nextBtn" onclick="navigate('next')">›</button>
+                        <button class="nav-btn" id="nextBtn" onclick="navigateImage('next')">Next ▶</button>
                     </div>
-                    <button class="recognize-btn" id="recognizeBtn" onclick="recognize()" disabled>
-                        🔍 Recognize Text
-                    </button>
                 </div>
-
-                <div class="loading" id="loading">
+                <div class="tool-controls" id="canvasControls" style="display:none;">
+                    <button class="tool-btn active" id="penBtn" onclick="setTool('pen')">✏ Pen</button>
+                    <button class="tool-btn" id="eraserBtn" onclick="setTool('eraser')">🧹 Eraser</button>
+                </div>
+                <div class="controls" id="actionControls" style="display:none;">
+                    <button class="btn secondary" onclick="clearCanvas()">Clear</button>
+                    <button class="btn" onclick="recognizeAction()">Recognize</button>
+                </div>
+                <div class="mode-toggle">
+                    <label class="pill" id="modeWord"><input type="radio" name="mode" value="word" checked> Word / Single</label>
+                    <label class="pill" id="modeSequence" title="Canvas supports single character only. Use upload for sequences."><input type="radio" name="mode" value="sequence" id="radioSequence"> Character sequence</label>
+                    <label class="pill" id="modeSentence" title="Canvas supports single character only. Use upload for sequences."><input type="radio" name="mode" value="sentence" id="radioSentence"> Sentence (with spaces)</label>
+                </div>
+                <div id="loading" class="loading">
                     <div class="spinner"></div>
-                    <p>Processing...</p>
+                    <div>Processing…</div>
                 </div>
+                <div id="error" class="status hidden" style="color:#ff7b7b;"></div>
+            </section>
 
-                <div class="results" id="results">
-                    <h3>Recognition Results</h3>
-                    <div class="predicted-text" id="predictedText"></div>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidenceFill" style="width: 0%">0%</div>
-                    </div>
-                    <div class="top5-predictions" id="top5Predictions"></div>
-                    <div style="text-align: center; margin: 20px 0;">
-                        <button class="tts-btn" id="ttsBtn" onclick="speakText()" disabled>
-                            🔊 Hear Pronunciation
-                        </button>
-                    </div>
-                    <div class="action-buttons">
-                        <button class="download-btn text" onclick="downloadText()">📄 Download as Text</button>
-                        <button class="download-btn pdf" onclick="downloadPDF()">📄 Download as PDF</button>
-                    </div>
+            <section class="card">
+                <h2>Recognized Output</h2>
+                <p class="output-label">Recognized Text</p>
+                <div class="output-text" id="predictedText">—</div>
+                <div class="output-actions">
+                    <button class="btn" id="ttsBtn" onclick="speakText()" disabled>🔊 Hear Output</button>
+                    <button class="btn secondary" onclick="downloadText()">📄 Save Text</button>
+                    <button class="btn secondary" onclick="downloadPDF()">📑 Save PDF</button>
                 </div>
-
-                <div class="error" id="error"></div>
-            </div>
-
-            <!-- History Sidebar -->
-            <div class="history-sidebar">
-                <h3>📜 Prediction History</h3>
-                <div id="historyList"></div>
-            </div>
-        </div>
+                <div class="status" id="sessionStatus">Canvas mode • Word</div>
+            </section>
+        </main>
     </div>
 
     <script>
-        let currentSession = null;
-        let currentMode = 'single';
-        let recognizedText = '';
-        let predictionHistory = [];
-        let isDarkMode = false;
-
-        // Drawing canvas setup
         const canvas = document.getElementById('drawingCanvas');
         const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
+        let drawing = false;
+        let points = [];
+        let currentSession = null;
+        let currentMode = 'word';
+        let currentSource = null;
+        let recognizedText = '';
+        let isDark = false;
+        let currentTool = 'pen'; // 'pen' or 'eraser'
+        let totalImages = 1; // Track total number of uploaded images
+        let currentImageIndex = 0; // Track current image index
+        let currentConfidence = null; // Last prediction confidence (0-1)
+        let currentUncertaintyMessage = ''; // Optional uncertainty hint
 
-        // Set canvas background
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 8;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        // Canvas event listeners
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseout', stopDrawing);
-
-        // Touch events for mobile
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
+        const dpr = window.devicePixelRatio || 1;
+        function setupCanvas() {
             const rect = canvas.getBoundingClientRect();
-            lastX = touch.clientX - rect.left;
-            lastY = touch.clientY - rect.top;
-            isDrawing = true;
-        });
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            resetCanvas();
+        }
+        function resetCanvas() {
+            // Clear the entire canvas
+            ctx.fillStyle = isDark ? '#0f172a' : '#fff';
+            ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+            // Reapply tool settings after clearing
+            setTool(currentTool);
+        }
+        window.addEventListener('resize', setupCanvas);
 
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!isDrawing) return;
-            const touch = e.touches[0];
-            const rect = canvas.getBoundingClientRect();
-            const currentX = touch.clientX - rect.left;
-            const currentY = touch.clientY - rect.top;
-            drawLine(lastX, lastY, currentX, currentY);
-            lastX = currentX;
-            lastY = currentY;
-        });
-
-        canvas.addEventListener('touchend', stopDrawing);
-
-        function startDrawing(e) {
-            isDrawing = true;
-            const rect = canvas.getBoundingClientRect();
-            lastX = e.clientX - rect.left;
-            lastY = e.clientY - rect.top;
+        function setTool(tool) {
+            currentTool = tool;
+            if (tool === 'pen') {
+                // Pen settings: draw black strokes
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#000';
+                ctx.fillStyle = '#000';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 1.0;
+                // Update button states
+                const penBtn = document.getElementById('penBtn');
+                const eraserBtn = document.getElementById('eraserBtn');
+                if (penBtn) penBtn.classList.add('active');
+                if (eraserBtn) eraserBtn.classList.remove('active');
+            } else if (tool === 'eraser') {
+                // Eraser settings: remove pixels
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 20; // Larger eraser for better usability
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.globalAlpha = 1.0; // Full opacity for complete erasing
+                // Update button states
+                const penBtn = document.getElementById('penBtn');
+                const eraserBtn = document.getElementById('eraserBtn');
+                if (penBtn) penBtn.classList.remove('active');
+                if (eraserBtn) eraserBtn.classList.add('active');
+            }
         }
 
-        function draw(e) {
-            if (!isDrawing) return;
-            const rect = canvas.getBoundingClientRect();
-            const currentX = e.clientX - rect.left;
-            const currentY = e.clientY - rect.top;
-            drawLine(lastX, lastY, currentX, currentY);
-            lastX = currentX;
-            lastY = currentY;
+        function openCanvas() {
+            // Hide image display if shown
+            document.getElementById('imageDisplay').classList.remove('active');
+            // Show canvas
+            document.getElementById('canvasWrap').classList.add('active');
+            document.getElementById('canvasControls').style.display = 'flex';
+            document.getElementById('actionControls').style.display = 'flex';
+            currentSource = 'canvas';
+            // Force Word/Single mode for canvas and disable sequence/sentence options
+            updateModeToggleState();
+            updateSessionStatus();
+            // Ensure canvas is properly set up
+            setupCanvas();
+            // Initialize with pen tool
+            setTool('pen');
         }
 
-        function drawLine(x1, y1, x2, y2) {
+        function startDraw(x, y) {
+            if (!canvas.getBoundingClientRect().width) return; // Canvas not ready
+            drawing = true;
+            points = [{x,y}];
+            
+            // Ensure tool settings are applied at start
+            setTool(currentTool);
+            
+            // Draw initial point (important for single clicks)
             ctx.beginPath();
-            ctx.moveTo(x1, y1);
-            ctx.lineTo(x2, y2);
+            ctx.arc(x, y, currentTool === 'eraser' ? 10 : 3, 0, Math.PI * 2);
+            if (currentTool === 'pen') {
+                ctx.fill();
+            } else {
+                ctx.fill(); // destination-out will erase
+            }
+        }
+        
+        function drawLine(x, y) {
+            if (!drawing) return;
+            
+            // Ensure tool settings are maintained during drawing
+            if (currentTool === 'pen') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 6;
+            } else {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.lineWidth = 20;
+            }
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            const prev = points[points.length - 1];
+            points.push({x,y});
+            
+            // Smooth drawing with quadratic curves
+            ctx.beginPath();
+            ctx.moveTo(prev.x, prev.y);
+            
+            if (points.length > 1) {
+                // Use quadratic curve for smoother lines
+                const midX = (prev.x + x) / 2;
+                const midY = (prev.y + y) / 2;
+                ctx.quadraticCurveTo(prev.x, prev.y, midX, midY);
+            } else {
+                ctx.lineTo(x, y);
+            }
+            
             ctx.stroke();
         }
-
-        function stopDrawing() {
-            isDrawing = false;
+        
+        function endDraw() { 
+            drawing = false; 
+            points = []; 
+            // Reapply tool settings after drawing ends
+            setTool(currentTool);
         }
+
+        // Enhanced pointer event handlers with proper coordinate handling
+        function getCanvasCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX / dpr,
+                y: (e.clientY - rect.top) * scaleY / dpr
+            };
+        }
+
+        canvas.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const coords = getCanvasCoordinates(e);
+            startDraw(coords.x, coords.y);
+            canvas.setPointerCapture(e.pointerId);
+        });
+        
+        canvas.addEventListener('pointermove', (e) => {
+            e.preventDefault();
+            if (drawing) {
+                const coords = getCanvasCoordinates(e);
+                drawLine(coords.x, coords.y);
+            }
+        });
+        
+        canvas.addEventListener('pointerup', (e) => {
+            e.preventDefault();
+            endDraw();
+            canvas.releasePointerCapture(e.pointerId);
+        });
+        
+        canvas.addEventListener('pointerleave', (e) => {
+            e.preventDefault();
+            endDraw();
+        });
+        
+        // Prevent context menu on right-click
+        canvas.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        function updateModeToggleState() {
+            // All modes are now enabled for both Canvas and Upload
+            // Canvas will use segmentation for sequence/sentence modes
+            const sequenceLabel = document.getElementById('modeSequence');
+            const sentenceLabel = document.getElementById('modeSentence');
+            const sequenceRadio = document.getElementById('radioSequence');
+            const sentenceRadio = document.getElementById('radioSentence');
+            
+            // Remove disabled state - all modes work now
+            sequenceLabel.classList.remove('disabled');
+            sentenceLabel.classList.remove('disabled');
+            sequenceRadio.disabled = false;
+            sentenceRadio.disabled = false;
+            
+            // Remove tooltips since modes are now enabled
+            sequenceLabel.removeAttribute('title');
+            sentenceLabel.removeAttribute('title');
+        }
+        
+        document.querySelectorAll('input[name="mode"]').forEach(r=>{
+            r.addEventListener('change', () => {
+                // Allow all modes for Canvas - segmentation will handle it
+                currentMode = r.value;
+                updateSessionStatus();
+            });
+        });
 
         function clearCanvas() {
-            ctx.fillStyle = isDarkMode ? '#2a2a3e' : 'white';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-
-        function recognizeDrawing() {
-            // Convert canvas to image and send for recognition
-            canvas.toBlob((blob) => {
-                const formData = new FormData();
-                formData.append('image', blob, 'drawing.png');
-                
-                showLoading();
-                hideError();
-                hideResults();
-                
-                fetch('/upload_single', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    hideLoading();
-                    if (data.success) {
-                        currentSession = data.session_id;
-                        currentMode = 'draw';
-                        recognize();
-                    } else {
-                        showError(data.error);
-                    }
-                })
-                .catch(err => {
-                    hideLoading();
-                    showError('Upload failed: ' + err.message);
-                });
-            });
-        }
-
-        // Dark mode toggle
-        function toggleDarkMode() {
-            isDarkMode = !isDarkMode;
-            document.body.classList.toggle('dark-mode', isDarkMode);
-            const btn = document.querySelector('.theme-toggle');
-            btn.textContent = isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode';
-            
-            // Update canvas background
-            if (!isDrawing) {
-                clearCanvas();
-            }
-        }
-
-        // File input handlers
-        document.getElementById('singleInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                uploadSingle(e.target.files[0]);
-            }
-        });
-
-        document.getElementById('multipleInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                uploadMultiple(Array.from(e.target.files));
-            }
-        });
-
-        document.getElementById('pdfInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                uploadPDF(e.target.files[0]);
-            }
-        });
-
-        // Drawing option click
-        document.getElementById('drawOption').addEventListener('click', function() {
-            document.getElementById('drawingSection').style.display = 'block';
-            document.getElementById('imageViewer').style.display = 'none';
-            updateActiveOption('drawOption');
-            currentMode = 'draw';
-        });
-
-        function uploadSingle(file) {
-            const formData = new FormData();
-            formData.append('image', file);
-            
-            showLoading();
+            resetCanvas();
+            recognizedText = '';
+            updatePredictedText('—');
             hideError();
-            hideResults();
-            document.getElementById('drawingSection').style.display = 'none';
-            
-            fetch('/upload_single', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                if (data.success) {
-                    currentSession = data.session_id;
-                    currentMode = 'single';
-                    showImage(data.image, data.current_index, data.total_images);
-                    updateActiveOption('singleOption');
-                } else {
-                    showError(data.error);
-                }
-            })
-            .catch(err => {
-                hideLoading();
-                showError('Upload failed: ' + err.message);
-            });
+            // Keep tool selection
+            setTool(currentTool);
+            // Reset confidence state
+            currentConfidence = null;
+            currentUncertaintyMessage = '';
+            updateSessionStatus();
         }
 
-        function uploadMultiple(files) {
-            if (files.length > 40) {
-                showError('Maximum 40 images allowed');
+        function updatePredictedText(text) {
+            recognizedText = text || '';
+            document.getElementById('predictedText').textContent = recognizedText || '—';
+            document.getElementById('ttsBtn').disabled = !recognizedText;
+        }
+
+        function showLoading() { document.getElementById('loading').style.display = 'block'; }
+        function hideLoading() { document.getElementById('loading').style.display = 'none'; }
+        function showError(msg) {
+            const el = document.getElementById('error');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideError() { document.getElementById('error').classList.add('hidden'); }
+
+        function updateSessionStatus() {
+            let sourceText = 'Ready';
+            if (currentSource === 'canvas') {
+                sourceText = 'Canvas';
+            } else if (currentSource === 'upload') {
+                if (totalImages > 1) {
+                    sourceText = `Upload (${totalImages} images)`;
+                } else {
+                    sourceText = 'Upload';
+                }
+            }
+            const modeText = currentMode === 'sequence'
+                ? 'Character sequence'
+                : currentMode === 'sentence'
+                    ? 'Sentence'
+                    : 'Word/Single';
+            let status = `${sourceText} • ${modeText}`;
+
+            if (typeof currentConfidence === 'number') {
+                const pct = (currentConfidence * 100).toFixed(1);
+                status += ` • ${pct}% confidence`;
+            }
+            if (currentUncertaintyMessage) {
+                status += ` • ${currentUncertaintyMessage}`;
+            }
+
+            document.getElementById('sessionStatus').textContent = status;
+        }
+
+        function recognizeAction() {
+            if (!currentSource) {
+                showError('Please open canvas or upload an image first.');
                 return;
             }
             
-            const formData = new FormData();
-            files.forEach(file => formData.append('images', file));
-            
-            showLoading();
             hideError();
-            hideResults();
-            document.getElementById('drawingSection').style.display = 'none';
+            showLoading();
             
-            fetch('/upload_multiple', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
+            // If an upload session exists, use it
+            if (currentSource === 'upload' && currentSession) {
+                callRecognize();
+                return;
+            }
+            
+            // Otherwise capture canvas
+            if (currentSource === 'canvas') {
+                canvas.toBlob(blob => {
+                    const formData = new FormData();
+                    formData.append('image', blob, 'drawing.png');
+                    fetch('/upload_single', { method:'POST', body: formData })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (!data.success) throw new Error(data.error || 'Upload failed');
+                            currentSession = data.session_id;
+                            currentSource = 'canvas'; // Ensure source is set
+                            updateSessionStatus();
+                            return callRecognize();
+                        })
+                        .catch(err => {
+                            hideLoading();
+                            showError(err.message);
+                        });
+                }, 'image/png');
+            } else {
                 hideLoading();
-                if (data.success) {
-                    currentSession = data.session_id;
-                    currentMode = 'multiple';
-                    showImage(data.image, data.current_index, data.total_images);
-                    updateActiveOption('multipleOption');
-                } else {
-                    showError(data.error);
-                }
-            })
-            .catch(err => {
-                hideLoading();
-                showError('Upload failed: ' + err.message);
-            });
+                showError('No input available. Please open canvas or upload an image.');
+            }
         }
 
-        function uploadPDF(file) {
-            const formData = new FormData();
-            formData.append('pdf', file);
-            
-            showLoading();
-            hideError();
-            hideResults();
-            document.getElementById('drawingSection').style.display = 'none';
-            
-            fetch('/upload_pdf', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                hideLoading();
-                if (data.success) {
+        // uploads
+        document.getElementById('singleInput').addEventListener('change', e => {
+            if (!e.target.files.length) return;
+            hideError(); showLoading();
+            const fd = new FormData(); 
+            fd.append('image', e.target.files[0]);
+            fetch('/upload_single', { method:'POST', body: fd })
+                .then(r=>r.json())
+                .then(data=>{
+                    if (!data.success) throw new Error(data.error || 'Upload failed');
+                    currentSource = 'upload';
                     currentSession = data.session_id;
-                    currentMode = 'pdf';
-                    showImage(data.image, data.current_index, data.total_images);
-                    updateActiveOption('pdfOption');
-                } else {
-                    showError(data.error);
+                    totalImages = 1;
+                    currentImageIndex = 0;
+                    showUploadedImage(data.image, 1, 0);
+                    hideLoading();
+                    updateModeToggleState(); // Re-enable all modes for upload
+                    updateSessionStatus();
+                }).catch(err=>{ hideLoading(); showError(err.message); });
+        });
+        document.getElementById('multipleInput').addEventListener('change', e => {
+            if (!e.target.files || e.target.files.length === 0) return;
+            
+            const files = Array.from(e.target.files);
+            hideError(); 
+            showLoading();
+            
+            const fd = new FormData();
+            // Append all files with the key 'images' (backend expects 'images')
+            let validFiles = 0;
+            files.forEach(f => {
+                if (f.type.startsWith('image/')) {
+                    fd.append('images', f);
+                    validFiles++;
                 }
-            })
-            .catch(err => {
-                hideLoading();
-                showError('Upload failed: ' + err.message);
             });
-        }
+            
+            if (validFiles === 0) {
+                hideLoading();
+                showError('Please select valid image files (PNG, JPG, JPEG, etc.).');
+                e.target.value = ''; // Reset input
+                return;
+            }
+            
+            if (validFiles > 40) {
+                hideLoading();
+                showError('Maximum 40 images allowed. Please select fewer images.');
+                e.target.value = ''; // Reset input
+                return;
+            }
+            
+            fetch('/upload_multiple', { method:'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.success) throw new Error(data.error || 'Upload failed');
+                    currentSource = 'upload';
+                    currentSession = data.session_id;
+                    totalImages = data.total_images || validFiles;
+                    currentImageIndex = data.current_index || 0;
+                    showUploadedImage(data.image, totalImages, currentImageIndex);
+                    hideLoading();
+                    updateModeToggleState(); // Re-enable all modes for upload
+                    updateSessionStatus();
+                    // Reset file input to allow uploading same files again
+                    e.target.value = '';
+                })
+                .catch(err => { 
+                    hideLoading(); 
+                    showError(err.message);
+                    e.target.value = ''; // Reset input on error
+                });
+        });
 
-        function navigate(direction) {
-            if (!currentSession) return;
+        function showUploadedImage(b64, total = 1, current = 0) {
+            // Hide canvas if shown
+            document.getElementById('canvasWrap').classList.remove('active');
+            document.getElementById('canvasControls').style.display = 'none';
+            // Show image display
+            const imgEl = document.getElementById('uploadedImage');
+            imgEl.src = `data:image/png;base64,${b64}`;
+            document.getElementById('imageDisplay').classList.add('active');
+            document.getElementById('actionControls').style.display = 'flex';
+            
+            // Show/hide navigation based on number of images
+            const navEl = document.getElementById('imageNavigation');
+            if (total > 1) {
+                navEl.style.display = 'flex';
+                updateImageCounter(current, total);
+                updateNavigationButtons(current, total);
+            } else {
+                navEl.style.display = 'none';
+            }
+        }
+        
+        function updateImageCounter(current, total) {
+            document.getElementById('imageCounter').textContent = `${current + 1} / ${total}`;
+        }
+        
+        function updateNavigationButtons(current, total) {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            
+            // Enable/disable buttons based on position
+            prevBtn.disabled = (total <= 1);
+            nextBtn.disabled = (total <= 1);
+            
+            // Visual feedback for navigation availability
+            if (total > 1) {
+                prevBtn.style.opacity = '1';
+                nextBtn.style.opacity = '1';
+            }
+        }
+        
+        function navigateImage(direction) {
+            if (!currentSession || totalImages <= 1) {
+                showError('Multiple images required for navigation.');
+                return;
+            }
+            
+            hideError();
+            showLoading();
             
             fetch('/navigate', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    session_id: currentSession,
-                    direction: direction
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    session_id: currentSession, 
+                    direction: direction 
                 })
             })
-            .then(response => response.json())
+            .then(r => r.json())
             .then(data => {
-                if (data.success) {
-                    showImage(data.image, data.current_index, data.total_images);
-                    hideResults();
-                } else {
-                    showError(data.error);
-                }
-            })
-            .catch(err => {
-                showError('Navigation failed: ' + err.message);
-            });
-        }
-
-        function recognize() {
-            if (!currentSession && currentMode !== 'draw') return;
-            
-            showLoading();
-            hideError();
-            hideResults();
-            
-            const mode = (currentMode === 'single' || currentMode === 'draw') ? 'single' : 'sequence';
-            
-            fetch('/recognize', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    session_id: currentSession,
-                    mode: mode
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
+                if (!data.success) throw new Error(data.error || 'Navigation failed');
+                currentImageIndex = data.current_index;
+                totalImages = data.total_images;
+                showUploadedImage(data.image, totalImages, currentImageIndex);
                 hideLoading();
-                if (data.success) {
-                    if (data.mode === 'sequence') {
-                        recognizedText = data.sequence;
-                        showResults(recognizedText, data.confidence, data.top5_predictions || []);
-                    } else {
-                        recognizedText = data.predicted_character;
-                        showResults(recognizedText, data.confidence, data.top5_predictions || []);
-                    }
-                    addToHistory(recognizedText, data.confidence);
-                } else {
-                    showError(data.error);
-                }
+                // Clear previous recognition result when navigating
+                updatePredictedText('—');
+                recognizedText = '';
             })
             .catch(err => {
                 hideLoading();
-                showError('Recognition failed: ' + err.message);
+                showError(err.message);
             });
         }
 
-        function showResults(text, confidence, top5) {
-            document.getElementById('predictedText').textContent = text;
-            
-            // Update confidence bar
-            const confPercent = Math.round(confidence * 100);
-            const confFill = document.getElementById('confidenceFill');
-            confFill.style.width = confPercent + '%';
-            confFill.textContent = confPercent + '%';
-            
-            // Show top-5 predictions
-            const top5Div = document.getElementById('top5Predictions');
-            if (top5 && top5.length > 0) {
-                top5Div.innerHTML = '<h4>Top 5 Predictions:</h4>';
-                top5.forEach((pred, idx) => {
-                    const item = document.createElement('div');
-                    item.className = 'prediction-item';
-                    item.innerHTML = `
-                        <span class="prediction-char">${pred.character}</span>
-                        <span class="prediction-conf">${Math.round(pred.confidence * 100)}%</span>
-                    `;
-                    top5Div.appendChild(item);
-                });
-            } else {
-                top5Div.innerHTML = '';
-            }
-            
-            document.getElementById('ttsBtn').disabled = !text || text.trim() === '';
-            document.getElementById('results').style.display = 'block';
-        }
-
-        function addToHistory(text, confidence) {
-            const historyItem = {
-                text: text,
-                confidence: confidence,
-                time: new Date().toLocaleTimeString()
-            };
-            predictionHistory.unshift(historyItem);
-            if (predictionHistory.length > 20) {
-                predictionHistory.pop();
-            }
-            updateHistoryDisplay();
-        }
-
-        function updateHistoryDisplay() {
-            const historyList = document.getElementById('historyList');
-            historyList.innerHTML = '';
-            
-            if (predictionHistory.length === 0) {
-                historyList.innerHTML = '<p style="text-align: center; color: #666;">No predictions yet</p>';
-                return;
-            }
-            
-            predictionHistory.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div class="history-char">${item.text}</div>
-                    <div class="history-time">${item.time} (${Math.round(item.confidence * 100)}%)</div>
-                `;
-                div.onclick = () => {
-                    recognizedText = item.text;
-                    showResults(item.text, item.confidence, []);
-                };
-                historyList.appendChild(div);
+        function callRecognize() {
+            return fetch('/recognize', {
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ session_id: currentSession, mode: currentMode })
+            })
+            .then(r=>r.json())
+            .then(data=>{
+                hideLoading();
+                if (!data.success) throw new Error(data.error || 'Recognition failed');
+                updatePredictedText(data.predicted_text);
+                // Update confidence UI metadata if available
+                currentConfidence = (typeof data.confidence === 'number') ? data.confidence : null;
+                currentUncertaintyMessage = (data.is_uncertain && data.uncertainty_message) ? data.uncertainty_message : '';
+                updateSessionStatus();
+            })
+            .catch(err=>{
+                hideLoading();
+                showError(err.message);
             });
         }
 
-        function showImage(imageData, currentIndex, totalImages) {
-            document.getElementById('imageViewer').style.display = 'block';
-            document.getElementById('imageContainer').innerHTML = 
-                `<img src="data:image/png;base64,${imageData}" alt="Current image">`;
-            
-            document.getElementById('imageCounter').textContent = `${currentIndex + 1} / ${totalImages}`;
-            document.getElementById('navigation').style.display = totalImages > 1 ? 'flex' : 'none';
-            document.getElementById('recognizeBtn').disabled = false;
+        function recognizeUploads() {
+            if (!currentSession) { showError('Upload an image or draw first.'); return; }
+            hideError(); showLoading();
+            callRecognize();
         }
 
         function speakText() {
             if (!recognizedText) return;
-            
             const btn = document.getElementById('ttsBtn');
             btn.disabled = true;
-            btn.textContent = '🔊 Generating Audio...';
-            
+            btn.textContent = '🔊 Generating…';
             fetch('/tts', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: recognizedText,
-                    lang: 'kn'
-                })
-            })
-            .then(response => {
-                if (response.ok) {
-                    return response.blob();
-                }
-                throw new Error('TTS generation failed');
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ text: recognizedText, lang:'kn' })
+            }).then(r=>{
+                if (!r.ok) throw new Error('TTS failed');
+                return r.blob();
+            }).then(blob=>{
+                const url = URL.createObjectURL(blob);
                 const audio = new Audio(url);
+                audio.onended = ()=>{ URL.revokeObjectURL(url); btn.disabled=false; btn.textContent='🔊 Hear Output'; };
+                audio.onerror = ()=>{ URL.revokeObjectURL(url); btn.disabled=false; btn.textContent='🔊 Hear Output'; showError('Could not play audio'); };
                 audio.play();
-                
-                audio.onended = () => {
-                    window.URL.revokeObjectURL(url);
-                    btn.disabled = false;
-                    btn.textContent = '🔊 Hear Pronunciation';
-                };
-                
-                audio.onerror = () => {
-                    window.URL.revokeObjectURL(url);
-                    btn.disabled = false;
-                    btn.textContent = '🔊 Hear Pronunciation';
-                    showError('Failed to play audio');
-                };
-            })
-            .catch(err => {
-                btn.disabled = false;
-                btn.textContent = '🔊 Hear Pronunciation';
-                showError('TTS failed: ' + err.message);
+            }).catch(err=>{
+                btn.disabled=false; btn.textContent='🔊 Hear Output'; showError(err.message);
             });
         }
 
         function downloadText() {
             if (!recognizedText) return;
-            
             fetch('/download_text', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: recognizedText
-                })
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ text: recognizedText })
+            }).then(r=>r.blob()).then(blob=>{
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'recognized_text.txt';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            })
-            .catch(err => {
-                showError('Download failed: ' + err.message);
-            });
+                a.href = url; a.download = 'recognized_text.txt';
+                document.body.appendChild(a); a.click();
+                URL.revokeObjectURL(url); document.body.removeChild(a);
+            }).catch(err=> showError(err.message));
         }
 
         function downloadPDF() {
             if (!recognizedText) return;
-            
             fetch('/download_pdf', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    text: recognizedText
-                })
-            })
-            .then(response => response.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
+                method:'POST',
+                headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({ text: recognizedText })
+            }).then(r=>r.blob()).then(blob=>{
+                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = 'recognized_text.pdf';
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-            })
-            .catch(err => {
-                showError('Download failed: ' + err.message);
-            });
+                a.href = url; a.download = 'recognized_text.pdf';
+                document.body.appendChild(a); a.click();
+                URL.revokeObjectURL(url); document.body.removeChild(a);
+            }).catch(err=> showError(err.message));
         }
 
-        function hideResults() {
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('ttsBtn').disabled = true;
+        function toggleDarkMode() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark-mode', isDark);
+            resetCanvas();
         }
 
-        function showLoading() {
-            document.getElementById('loading').style.display = 'block';
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').style.display = 'none';
-        }
-
-        function showError(message) {
-            document.getElementById('error').textContent = message;
-            document.getElementById('error').style.display = 'block';
-        }
-
-        function hideError() {
-            document.getElementById('error').style.display = 'none';
-        }
-
-        function updateActiveOption(optionId) {
-            document.querySelectorAll('.upload-option').forEach(option => {
-                option.classList.remove('active');
-            });
-            document.getElementById(optionId).classList.add('active');
-        }
-
-        // Initialize history display
-        updateHistoryDisplay();
+        // Keyboard shortcuts for tools
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Enter for recognition
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                recognizeAction();
+            }
+            // 'P' key for pen tool (when canvas is active)
+            if (e.key === 'p' || e.key === 'P') {
+                if (document.getElementById('canvasWrap').classList.contains('active')) {
+                    e.preventDefault();
+                    setTool('pen');
+                }
+            }
+            // 'E' key for eraser tool (when canvas is active)
+            if (e.key === 'e' || e.key === 'E') {
+                if (document.getElementById('canvasWrap').classList.contains('active')) {
+                    e.preventDefault();
+                    setTool('eraser');
+                }
+            }
+        });
+        
+        // Initialize
+        setupCanvas();
+        setTool('pen'); // Initialize with pen tool
+        updateModeToggleState(); // Initialize mode toggle state (all enabled initially)
+        updateSessionStatus();
     </script>
 </body>
 </html>
